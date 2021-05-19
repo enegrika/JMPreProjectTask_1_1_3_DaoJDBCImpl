@@ -16,30 +16,48 @@ public class Util {
 
     private Connection connection;
 
-    public Util() throws SQLException {
-//        try {
-//            Class.forName("com.mysql.cj.jdbc.Driver");
-//        } catch (ClassNotFoundException e) {
-//            System.out.println("can not register DbDriver");
-//        }
-        connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
-        connection.setAutoCommit(false);// USING TRANSACTIONS
+    public Util(){
+        try {
+            Class.forName("com.mysql.cj.jdbc.Driver");
+        } catch (ClassNotFoundException e) {
+            System.out.println("can not register DbDriver");
+        }
+
+        try {
+            connection = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+            connection.setAutoCommit(false);// USING TRANSACTIONS
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
+
     }
 
     public Connection getConnection() {
         return connection;
     }
 
-    public void close() throws SQLException {
-        connection.close();
+    public void close(){
+        try {
+            connection.close();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
-    public void commit() throws SQLException {
-        connection.commit();
+    public void commit(){
+        try {
+            connection.commit();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
     }
 
-    public Savepoint setSavepoint() throws SQLException {
-        savepoint = connection.setSavepoint();
+    public Savepoint setSavepoint() {
+        try {
+            savepoint = connection.setSavepoint();
+        } catch (SQLException throwables) {
+            throwables.printStackTrace();
+        }
         return savepoint;
     }
 

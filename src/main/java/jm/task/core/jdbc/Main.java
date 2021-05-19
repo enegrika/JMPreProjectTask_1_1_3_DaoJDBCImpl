@@ -22,7 +22,7 @@ public class Main {
 
 //        // OPTION - DELETE USER by ID
 //
-////        userService.removeUserById(2);
+        userService.removeUserById(2);
 
         // 3 - GET ALL USERS and print to console
 
@@ -34,7 +34,7 @@ public class Main {
         userService.cleanUsersTable();
 //
         // 5 - DROP table
-//        userService.dropUsersTable();
+        userService.dropUsersTable();
 
     }
 }

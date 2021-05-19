@@ -4,6 +4,8 @@ import javax.persistence.Column;
 import javax.persistence.Id;
 import javax.persistence.Table;
 
+
+// HERE we USE JPA annotations to work with DATABASE
 @Table
 public class User {
     @Id

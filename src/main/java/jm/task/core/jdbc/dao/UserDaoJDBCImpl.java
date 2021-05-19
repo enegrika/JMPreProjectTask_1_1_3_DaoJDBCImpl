@@ -3,19 +3,14 @@ package jm.task.core.jdbc.dao;
 import jm.task.core.jdbc.model.User;
 import jm.task.core.jdbc.util.Util;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Savepoint;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class UserDaoJDBCImpl implements UserDao {
 
     private String tableName = "usersTable";
-    private Statement statement;
     private Util connection;
-    private ResultSet resultSet;
     private Savepoint savepoint;
 
     public UserDaoJDBCImpl() {
@@ -24,18 +19,13 @@ public class UserDaoJDBCImpl implements UserDao {
     public void createUsersTable() {
         try {
             connection = new Util();
-            statement = connection.getConnection().createStatement();
+            Statement statement = connection.getConnection().createStatement();
+            statement.executeUpdate("CREATE TABLE IF NOT EXISTS "
+                    + tableName
+                    + " ( id BIGINT auto_increment, name varchar(40) null, lastName varchar(40) null, age TINYINT null, constraint users_pk primary key (id))");
 
-            statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName +
-                    "(id BIGINT auto_increment," +
-                    "name varchar(40) null," +
-                    "lastName varchar(40) null," +
-                    "age TINYINT null," +
-                    "constraint users_pk primary key (id));"
-            );
-
+            connection.commit();
             savepoint = connection.setSavepoint(); // SET SAVEPOINT AFTER CREATE NEW TABLE
-
             statement.close();
             connection.close();
         } catch (SQLException e) {
@@ -47,13 +37,13 @@ public class UserDaoJDBCImpl implements UserDao {
     public void dropUsersTable() {
         try {
             connection = new Util();
-            statement = connection.getConnection().createStatement();
-
-            statement.executeUpdate("DROP TABLE IF EXISTS " + tableName + " ;");
+            PreparedStatement preparedStatement =
+                    connection.getConnection()
+                            .prepareStatement("DROP TABLE IF EXISTS " + tableName + " ;");
+            preparedStatement.executeUpdate();
 
             connection.commit();
-
-            statement.close();
+            preparedStatement.close();
             connection.close();
         } catch (SQLException e) {
             System.out.println("can not DELETE table");
@@ -68,18 +58,20 @@ public class UserDaoJDBCImpl implements UserDao {
 
     public void saveUser(String name, String lastName, byte age) {
         try {
-
             connection = new Util();
-            statement = connection.getConnection().createStatement();
 
-            statement.executeUpdate("INSERT INTO " + tableName + " (name, lastName, age)" +
-                    " VALUES ('" + name + "', '" + lastName + "', " + age + ");"
-            );
+            PreparedStatement preparedStatement = connection.getConnection()
+                    .prepareStatement("INSERT INTO " + tableName + " (name, lastName, age) VALUES (?, ?, ?);");
+            preparedStatement.setString(1, name);
+            preparedStatement.setString(2, lastName);
+            preparedStatement.setInt(3, age);
+
+            preparedStatement.executeUpdate();
             System.out.println("User с именем – " + name + " добавлен в базу данных");
 
             connection.commit();
 
-            statement.close();
+            preparedStatement.close();
             connection.close();
 
         } catch (SQLException e) {
@@ -97,12 +89,14 @@ public class UserDaoJDBCImpl implements UserDao {
 
         try {
             connection = new Util();
-            statement = connection.getConnection().createStatement();
-
-            statement.executeUpdate("DELETE FROM " + tableName + " WHERE id = " + id + " ;");
+            PreparedStatement preparedStatement =
+                    connection.getConnection()
+                            .prepareStatement("DELETE FROM " + tableName + " WHERE id = ? ;");
+            preparedStatement.setLong(1, id);
+            preparedStatement.executeUpdate();
 
             connection.commit();
-            statement.close();
+            preparedStatement.close();
             connection.close();
 
         } catch (SQLException e) {
@@ -119,14 +113,13 @@ public class UserDaoJDBCImpl implements UserDao {
 
 
     public List<User> getAllUsers() {
-
         List<User> userList = new ArrayList<>();
 
         try {
             connection = new Util();
-            statement = connection.getConnection().createStatement();
+            Statement statement = connection.getConnection().createStatement();
 
-            resultSet = statement.executeQuery("SELECT * FROM " + tableName + " ;");
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM " + tableName + " ;");
             while (resultSet.next()) {
                 User user = new User();
                 user.setId(resultSet.getLong(1));
@@ -159,8 +152,7 @@ public class UserDaoJDBCImpl implements UserDao {
     public void cleanUsersTable() {
         try {
             connection = new Util();
-            statement = connection.getConnection().createStatement();
-
+            Statement statement = connection.getConnection().createStatement();
             statement.executeUpdate("DELETE FROM " + tableName + " ;");
 
             connection.commit();
@@ -175,7 +167,5 @@ public class UserDaoJDBCImpl implements UserDao {
                 throwables.printStackTrace();
             }
         }
-
-
     }
 }
